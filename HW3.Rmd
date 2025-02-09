@@ -1,0 +1,274 @@
+---
+title: "HW3"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r, echo=FALSE, warning=FALSE}
+# Importing packages
+library(tidyverse)
+
+library(mosaic)
+
+# Reading datasets into variables
+gas_prices <- read.csv("C:\\Users\\gelet\\OneDrive\\Documents\\SDS315\\HW3\\gasprices.csv")
+
+s_class <- read.csv("C:\\Users\\gelet\\OneDrive\\Documents\\SDS315\\HW3\\sclass.csv")
+
+pilot_survey <- read.csv("C:\\Users\\gelet\\OneDrive\\Documents\\SDS315\\HW3\\nbc_pilotsurvey.csv")
+
+ebay <- read.csv("C:\\Users\\gelet\\OneDrive\\Documents\\SDS315\\HW3\\ebay.csv")
+```
+
+
+# Problem 1
+
+## Theory A
+
+### Claim 
+
+Theory A states that "gas stations will charge more if they lack direct competition in sight". 
+
+### Evidence
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+# First, generating a simple boxplot to look at differences in the distribution of prices in the sampled gas stations
+ggplot(gas_prices, aes(x = factor(Competitors), y = Price)) +
+  geom_boxplot(fill = "lightblue1", color = "black") +
+  labs(x = "Other gas stations in sight?",
+       y = "Price of regular unleaded gas on Apr. 3 2016",
+       title = "Sampled Gas Station Price Distributions by Presence of Nearby Competitors")
+```
+Across the 101 gas stations in the sample, gas stations with no competitors in sight had their median gas price on April 3 2016 about `r median(gas_prices$Price[gas_prices$Competitors == "N"]) - median(gas_prices$Price[gas_prices$Competitors == "Y"])` dollars higher than gas stations with competitors in sight. 
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+# Setting seed
+set.seed(800)
+
+# Difference in means of bootstrap samples
+boot_competitors <- do(10000)*diffmean(Price ~ Competitors, data = mosaic::resample( gas_prices))
+
+# Displaying the distribution of difference in mean gas prices between gas stations w/ and w/o competitors across 10,000 bootstrapped samples
+ggplot(boot_competitors, aes(x = diffmean)) +
+  geom_histogram(fill = "plum1", color = "black") +
+  labs(x = "Difference in Mean Gas Prices Between Gas Stations With and Without Competitors",
+       y = "Number of Bootstrapped Samples",
+       title = "Distribution of Diff. of Bootstrap Sample Mean Gas Prices Between Gas Stations")
+
+# Calculating 95% confidence interval of difference in bootstrapped means
+confint(boot_competitors, level = 0.95)
+```
+
+10000 bootstrapped samples were constructed from the original sample of 101 gas stations, and in each bootstrap sample the difference in mean gas station prices between gas stations without and with competitors in sight was taken. The distribution of the differences in means is displayed in the histogram above. A 95% confidence interval of the difference in means was calculated; based on this, with 95% confidence, the difference in mean prices between gas stations without and with competitors in sight is between -0.0553 and 0.00853 dollars. 
+
+### Conclusion
+
+The 95% confidence interval of difference in mean gas prices between gas stations without and with competitors captures 0, so the difference in means is not statistically significant at the 5% level. Therefore, there is not enough evidence to show that gas stations without nearby gas stations in sight charge higher gas prices than gas stations with nearby gas stations in sight.
+
+## Theory B
+
+### Claim 
+
+Theory B claims that richer areas have higher gas prices. 
+
+### Evidence
+
+First, it would be helpful to present a scatterplot demonstrating the relationship between gas prices and income within the sample of 101 gas stations.
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+ggplot(gas_prices, aes(x = Income, y = Price)) +
+  geom_point(size = 2) +
+  # Line fitting
+  geom_smooth(method = lm, se = T)
+  labs(x = "2014 Median Household Income by Zip Code of Gas Stations",
+       y = "Price of Regular Unleaded Gas on Apr. 3 2016",
+       title = "Relationship Between Income and Gas Prices across 101 Sampled Gas Stations")
+
+# Linear Model
+summary(lm(data = gas_prices, formula = Price ~ Income))
+```
+
+There appears to be a moderate, positive relationship between income and gas prices among the 101 sampled gas stations, as indicated by a Pearson correlation of `r round(cor(gas_prices$Price, gas_prices$Income), 4)`.
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+# Generating bootstrap samples
+bootstrap_income <- do(10000)*lm(data = mosaic::resample(gas_prices), formula = Price ~ Income)
+
+# Visualizing distribution of slope
+ggplot(bootstrap_income, aes(x = Income)) +
+  geom_histogram(fill = "plum1", color = "black") +
+  labs(x = "Bootstrapped Mean Change in Gas Price for Every $1 Increase in Income",
+       y = "Number of Bootstrapped Samples",
+       title = "Bootstrapped Linear Regression Slope Coefficients of Income on Gas Prices")
+
+# Confidence Interval Calculation
+confint(bootstrap_income, level = 0.95)
+```
+10000 bootstrapped samples were taken and a linear regression output was generated for each one, with income as the predictor and gas prices as the outcome variable. Above is the distribution of the bootstrapped linear regression slopes. A confidence interval was calculated from the bootstrapped samples, finding with 95% confidence that the mean change in gas prices for every one dollar increase in income lies between 0.0000006513 and 0.000001787764 dollars. 
+
+### Conclusion
+
+Since the 95% confidence interval of mean change of gas prices for every dollar increase in income does not capture 0, the data do appear to support the theory that richer areas have higher gas prices.
+
+## Theory C
+
+### Claim
+
+Theory C states that gas stations at stoplights have higher gas prices than gas stations not at stoplights.
+
+### Evidence
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+# Visualizing difference in mean prices between sampled gas stations at and not at stoplights
+ggplot(gas_prices, aes(x = factor(Stoplight), y = Price)) +
+  geom_boxplot(fill = "lightblue1", color = "black") +
+  labs(x = "Stoplight In Front of Gas Station?", 
+       y = "Price of Regular Unleaded Gasoline on Apr. 3 2016",
+       title = "Differences in Gas Prices Across Sampled Gas Stations by Presence of Stoplight")
+
+round(mean(gas_prices$Price[gas_prices$Stoplight == "Y"]) - mean(gas_prices$Price[gas_prices$Stoplight == "N"]), 4)
+```
+
+Sampled gas stations with a stoplight in front of them had a mean gas price around `r round(mean(gas_prices$Price[gas_prices$Stoplight == "N"]) - mean(gas_prices$Price[gas_prices$Stoplight == "Y"]), 4)` dollars lower than gas stations without stoplights in front of them.
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+# Generating bootstrapped diffs. in means and storing in object bootstrap_stoplights
+bootstrap_stoplights <- do(10000)*diffmean(Price ~ Stoplight, data = mosaic::resample(gas_prices))
+
+# Visualizing distribution of bootstrapped diff. in means
+ggplot(bootstrap_stoplights, aes(x = diffmean)) +
+  geom_histogram(fill = "plum1", color = "black") +
+  labs(x = "Bootstrapped Difference in Mean Gas Price By Presence of Stoplight",
+       y = "Number of Bootstrapped Samples",
+       title = "Distribution of Bootstrapped Diff. of Mean Gas Prices Between Stoplight and Non-Stoplight Stations")
+
+# Calculating a confidence interval of the diff. in means
+confint(bootstrap_stoplights, level = 0.95)
+```
+
+Bootstrap samples were generated from the original sample, and for each the difference in mean gas prices between gas stations with and without stoplights in front of them was calculated; this process was repeated 10,000 times and the output was stored in an object and the distribution of the bootstrapped diff. in means is shown in the histogram above. A confidence interval was generated from the 10000 bootstrapped diff. in means, determining with 95% confidence that the difference in mean gas prices between gas stations with and without a stoplight in front of them lies between -0.0378 and 0.0302 dollars. 
+
+### Conclusion
+
+Since the 95% confidence interval of the difference in bootstrapped gas price means between gas statiosn with and without a stoplight in front of them captures 0, the data do not support the theory that gas stations with a stoplight in front of them have higher gas prices.
+
+## Theory D
+
+### Claim
+
+Theory D claims that gas stations accessible from a highway have higher gas prices than gas stations that are not accessible from a highway.
+
+### Evidence
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+# Visualizing the difference in gas prices between gas stations accessible and not accessible from a highway
+ggplot(gas_prices, aes(x = factor(Highway), y = Price)) +
+  geom_boxplot(fill = "lightblue1", color = "black") +
+  labs(x = "Gas Station Accessible from Highway or Highway Access Road?",
+       y = "Price of Regular Unleaded Gasoline on Apr. 3 2016",
+       title = "Sampled Gas Station Gas Prices by Highway Accessibility") 
+
+round(mean(gas_prices$Price[gas_prices$Highway == "Y"]) - mean(gas_prices$Price[gas_prices$Highway == "N"]), 4)
+```
+Sampled gas stations that are accessible from a highway have gas prices `r round(mean(gas_prices$Price[gas_prices$Highway == "Y"]) - mean(gas_prices$Price[gas_prices$Highway == "N"]), 4)` dollars higher than those unaccessible from a highway.
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+# Generating bootstrap diff in means between gas stations accessible and unaccessible from highway
+bootstrap_highway <- do(10000)*diffmean(Price ~ Highway, data = mosaic::resample(gas_prices))
+
+# Visualizing bootstrap diff in means
+ggplot(bootstrap_highway, aes(x = diffmean)) +
+  geom_histogram(fill = "plum1", color = "black") +
+  labs(x = "Bootstrapped Difference in Mean Gas Price",
+       y = "Number of Bootstrapped Samples",
+       title = "Distribution of Bootstrapped Diff. in Mean Gas Prices by Highway Accessibility to Gas Station")
+
+# Calculating confidence interval from diff. in means
+confint(bootstrap_highway, level = 0.95)
+```
+Bootstrap samples were taken from the original sample, and the difference in mean gas prices between gas stations with and without highway accessibility was calculated; this process was repeated 10000 times and the output is displayed in the histogram distribution above. A confidence interval was calculated on the diff. in means, finding with 95% confidence that the difference in mean gas prices between gas stations with and without highway or highway access road accessibility lies between 0.00883 and 0.08134 dollars. 
+
+### Conclusion
+
+Since the 95% confidence interval of the difference in mean gas prices betwen gas stations with and without highway or highway access road accessbility does not capture 0, the data do support the theory that gas stations with direct highway access have higher gas prices.
+
+## Theory E
+
+### Claim
+
+Theory E claims that Shell brand gas stations have higher gas prices than non Shell brand gas stations.
+
+### Evidence 
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+# Creating a binary value where Y indicates Shell-brand, N indicates non-Shell Brand
+gas_prices <- gas_prices %>% 
+  mutate(Shell = ifelse(Brand == "Shell", "Y", "N"))
+
+# Visualizing difference in gas prices among sampled gas stations by brand
+ggplot(gas_prices, aes(x = factor(Shell), y = Price)) +
+  geom_boxplot(fill = "lightblue1", color = "black") +
+  labs(x = "Shell Gas Station?", 
+       y = "Price of Regular Unleaded Gasoline on Apr. 3 2016",
+       title = "Differences in Gas Prices Among Sampled Gas Stations By Shell Brand")
+```
+Sampled Shell gas stations had a mean gas price `r round(mean(gas_prices$Price[gas_prices$Shell == "Y"]) - mean(gas_prices$Price[gas_prices$Shell == "N"]), 4)` dollars higher than non Shell gas stations.
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+# Generating 10000 bootstrapped diff. in means 
+bootstrap_shell <- do(10000)*diffmean(Price ~ Shell, data = mosaic::resample(gas_prices))
+
+# Visualizing bootstrapped diff. in means
+ggplot(bootstrap_shell, aes(x = diffmean)) +
+  geom_histogram(fill = "plum1", color = "black") +
+  labs(x = "Bootstrapped Difference in Mean Gas Price",
+       y = "Number of Bootstrap Samples", 
+       title = "Distribution of Bootstrapped Diff. in Mean Gas Prices Between Shell/Non-Shell Gas Stations")
+
+# Creating confidence interval from diff. in means
+confint(bootstrap_shell, level = 0.95)
+```
+Bootstrap samples were taken from the original sample and the difference in mean gas prices between Shell and non-Shell gas stations was calculated for each bootstrap sample, with the process repeated 10000 times and the distribution of difference in means displayed on the graph above. A confidence interval was produced, determinging with 95% confidence that the difference in mean gas prices between Shell and non-Shell gas stations lies between -0.00928 and 0.0653 dollars.
+
+### Conclusion
+
+Since the 95% confidence interval of difference in mean gas prices between Shell and non-Shell gas stations captures 0, the data do not support the theory that Shell gas stations charge higher gas prices than non-Shell gas stations.
+
+# Problem 2
+
+## Part A
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+# Filtering and creating new dataframe
+sclass_2011 <- s_class %>% 
+  filter(year == 2011 & trim == "63 AMG")
+
+# Generating bootstrapped samples
+boot_sclass_2011 <- do(10000)*mean(~mileage, data = mosaic::resample(sclass_2011)) 
+
+# Calculating confidence interval
+confint(boot_sclass_2011, level=0.95)
+```
+
+It can be stated with 95% confidence that the mean mileage of 2011 Mercedes S-Class 63 AMGs on cars.com at the time of data collection lies between 26223.03 and 31771.8 miles per gallon.
+
+## Part B
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+# Filtering, creating variable isBlack and creating new dataframe
+sclass_2014 <- s_class %>% 
+  filter(year == 2014 & trim == "550") %>% 
+  mutate(isBlack = ifelse(color == "Black", yes=TRUE, no=FALSE))
+
+# Generating bootstrapped samples
+boot_sclass_2014 <- do(10000)*prop(~isBlack, data = mosaic::resample(sclass_2014))
+
+# Calculating confidence interval
+confint(boot_sclass_2014, level = 0.95)
+```
+It can be stated with 95% confidence that the proportion of 2014 Mercedes S-Class 550s on cars.com at the time of data collection that were black lies between 0.4168 and 0.4534.
+
+# Problem 3
+
+## Part A
