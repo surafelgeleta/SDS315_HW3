@@ -272,3 +272,182 @@ It can be stated with 95% confidence that the proportion of 2014 Mercedes S-Clas
 # Problem 3
 
 ## Part A
+
+### Question
+
+What show makes people happier: "Living with Ed" or "My Name is Earl"?
+
+### Approach
+
+A dataset is created, only including observations on "Living with Ed" or "My Name is Earl",
+and to measure happiness, the `Q1_Happy` variable is used. The difference in mean scores in `Q1_Happy` between "Living with Ed" and "My Name is Earl" viewers is computed from a bootstrap sample constructed from the original sample, and this process is repeated 10000 times to generate 10000 bootstrapped differences in mean `Q1_Happy` scores. Then, a 95% confidence interval is constructed from the bootstrapped samples to evaluate the difference in mean `Q1_Happy` scores.
+
+### Results
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+# Constructing new dataset with Ed and Earl shows
+EdEarl_pilotsurvey <- pilot_survey %>% 
+  filter(Show == "Living with Ed" | Show == "My Name is Earl")
+
+# Factored boxplot to observe differences in happiness in the original sample
+ggplot(EdEarl_pilotsurvey, aes(x = factor(Show), y = Q1_Happy)) +
+  geom_boxplot(fill = "lightblue1", color = "black") +
+  labs(x = "Show",
+       y = "Happiness Score",
+       title = "NBC Pilot Survey Happiness Scores Between Ed and Earl Shows")
+```
+
+The graph above displays differences in the distribution of happiness scores between "My Name is Earl" and "Living with Ed" in the survey sample. Both shows have a median happiness score of 4, but "Living with Ed" appears to have a wider range of score values than "My Name is Earl".
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+# Constructing 10000 bootstrapped difference in means
+boot_EdnEarl <- do(10000)*diffmean(Q1_Happy ~ Show, data = mosaic::resample(EdEarl_pilotsurvey))
+
+# Visualization of distribution of bootstrapped differences of means
+ggplot(boot_EdnEarl, aes(x = diffmean)) +
+  geom_histogram(fill = "plum1", color = "black") +
+  labs(x = "Bootstrapped Difference in Mean Happiness Scores",
+       y = "Number of Bootstrap Samples",
+       title = "Bootstrapped Diff. in Mean Happiness Scores Between 'Ed' and 'Earl' Shows")
+
+# Constructing 95% confidence interval for bootstrapped diff. in means
+confint(boot_EdnEarl, level = 0.95)
+```
+The graph above displays the distribution of the bootstrapped differences in mean happiness scores.
+
+### Conclusion
+
+The confidence interval for these differences in means demonstrates with 95% confidence that the difference in mean happiness scores between "Living with Ed" and "My Name is Earl" is between -0.3991 and 0.1004. However, since 0 is within this range (a difference of means equal to 0 would mean there is no difference in happiness scores between the two shows), the data do not support the theory that viewers feel different levels of happiness when watching "Living with Ed" and "My Name is Earl".
+
+## Part B
+
+### Question
+
+We want to answer: which shows made viewers more annoyed, "The Biggest Loser" or "The Apprentince: Los Angeles"?
+
+### Approach
+
+A dataset is created only including the shows "The Biggest Loser" and "The Apprentince: Los Angeles", and differences in the values of `Q1_Annoyed` in the original sample are visualized using a factored boxplot. Then, 10000 bootstrapped difference in mean annoyance scores are generated from the original dataset, visualized on a histogram. Finally, a 95% confidence interval is constructed from the bootstrapped difference in mean annoyance scores to examine the strength of evidence that one show causes more annoyance than the other.
+
+### Results
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+# Filtering dataset to only include Loser and Apprentince and creating new dataframe
+LoserApprn_pilotsurvey <- pilot_survey %>% 
+  filter(Show == "The Biggest Loser" | Show == "The Apprentice: Los Angeles")
+
+# Visualizing sample differences
+ggplot(LoserApprn_pilotsurvey, aes(x = factor(Show), y = Q1_Annoyed)) +
+  geom_boxplot(fill = "lightblue1", color = "black") +
+  labs(x = "Show",
+       y = "Annoyance Score",
+       title = "NBC Pilot Survey Annoyance Scores Between 'The Biggest Loser' and 'The Apprentice'")
+```
+Within the NBC sample, "The Apprentince: Los Angeles" and "The Biggest Loser" appear to have identical annoyance score distributions, with median annoyance scores of 2.
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+# Generating bootstrapped samples
+boot_LoserAppren <- do(10000)*diffmean(Q1_Annoyed ~ Show, data = mosaic::resample(LoserApprn_pilotsurvey))
+
+# Visualization of distribution of bootstrapped differences of means
+ggplot(boot_LoserAppren, aes(x = diffmean)) +
+  geom_histogram(fill = "plum1", color = "black") +
+  labs(x = "Bootstrapped Difference in Mean Annoyance Scores",
+       y = "Number of Bootstrap Samples",
+       title = "Bootstrapped Diff. in Mean Annoyance Scores Between 'Loser' and 'Apprentice' Shows")
+
+# Constructing 95% confidence interval
+confint(boot_LoserAppren, level = 0.95)
+```
+The graph above displays the bootstrapped difference in mean annoyance scores between "The Biggest Loser" and "The Apprentice: Los Angeles". 
+
+### Conclusion
+
+The confidence interval computed demonstrates with 95% confidence that the difference in mean annoyance scores between "The Biggest Loser" and "The Apprentice: Los Angeles" lies between -0.5231 and -0.0218. Since 0 is not within this interval, the data do support the idea that viewers had different levels of annoyance between "The Biggest Loser" and "The Apprentice: Los Angeles". 
+
+## Part C
+
+### Question
+
+What is the proportion of American TV watchers expected to have given a score of 4 or above to the NBC's Q2_Confusing pilot survey question for the show "Dancing with the Stars"?
+
+### Approach
+
+A dataset is created from the original survey only containing observations with the show "Dancing with the Stars", and a new binary variable is created that assigns a TRUE or FALSE value depending on whether or not a viewer gave a confusion score of 4 or higher. 10000 bootstrap samples are generated, and for each the proportion of viewers who gave "Dancing with the Stars" a confusion score of 4 or higher is calculated and stored as entries into a dataframe. Then, a 95% confidence interval is constructed from the bootstrapped proportions.
+
+### Results
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+dancing_pilotsurvey <- pilot_survey %>% 
+  # Filtering dataset to only include Dancing with the Stars
+  filter(Show == "Dancing with the Stars") %>% 
+  # Creating a binary variable for confusion scores 4+
+  mutate(isConfusedFour = ifelse(Q2_Confusing >= 4, yes=TRUE, no=FALSE))
+
+# Generating bootstrap sample proportions
+boot_dancing <- do(10000)*prop(~isConfusedFour, data = mosaic::resample(dancing_pilotsurvey))
+
+# Visualizing bootstrapped proportions
+ggplot(boot_dancing, aes(x = prop_TRUE)) +
+  geom_histogram(fill = "plum1", color = "black") +
+  labs(x = "Bootstrap Proportion of Viewers Giving Confusion Score 4+",
+       y = "Number of Bootstrap Samples",
+       title = "Distribution of Bootstrapped Proportions of Confusion Scores 4+ for Dancing w/the Stars")
+
+# Generating 95% confidence interval
+confint(boot_dancing, level = 0.95)
+```
+
+Above is the distribution of the bootstrapped proportions of viewers giving "Dancing with the Stars" a confusion score of 4 or greater. It is centered at around 0.07-0.08.
+
+### Conclusion 
+
+The confidence interval generated determines with 95% confidence that the proportion of American TV watchers expected to have given a score of 4 or above to the NBC's Q2_Confusing pilot survey question for the show "Dancing with the Stars" lies between 0.03887 and 0.11602.
+
+# Problem 4
+
+## Question
+
+Does Ebay's paid advertising on Google AdWords increase revenue for Ebay?
+
+## Approach
+
+To determine whether revenue changed before to after the experiment, a revenue ratio variable is created; that is, the ratio of revenue 30 days after the experiment to revenue 30 days before the experiment. 10000 bootstrap samples are taken, with the difference in the mean revenue ratio between treatment and control DMAs calculated for each sample. The distribution of these differences in means is visualized in a histogram, and a 95% confidence interval is constructed for the difference in mean revenue ratio.
+
+## Results
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+# Creating revenue ratio variable
+ebay <- ebay %>% 
+  mutate(rev_ratio = rev_after/rev_before)
+
+# Distributions of revenue ratio between treatment and control DMAs in sample
+ggplot(ebay, aes(x = factor(adwords_pause), y = rev_ratio)) +
+  geom_boxplot(fill = "lightblue1", color = "black") +
+  labs(x = "DMA Group (Treatment = 1, Control = 0)",
+       y = "Revenue Ratio",
+       title = "Distribution of Revenue Ratios in Ebay Adwords Experiment By Group Type")
+```
+
+The factored boxplot above shows the distribution of revenue ratios across DMAs in Ebay's Adwords experiment by the DMA's experimental group, with treatment groups that experienced a paid ad pause designated by 1, and control groups that had no paid ad pause indicated by 0. DMAs in the treatment group appeared to have lower revenue ratios than control DMAs, indicated that the former saw relatively lower revenue after the experiment. 
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+# Generating bootstrap samples
+boot_ebay <- do(10000)*diffmean(rev_ratio ~ adwords_pause, data = mosaic::resample(ebay))
+
+# Visualizing bootstrapped differences in mean revenue ratios
+ggplot(boot_ebay, aes(x = diffmean)) +
+  geom_histogram(fill = "plum1", color = "black") +
+  labs(x = "Bootstrapped Difference in Mean Revenue Ratio",
+       y = "Number of Bootstrap Samples",
+       title = "Bootstrapped Differences in Mean Revenue Ratios Between Treatment and Control")
+
+# Constructing 95% confidence interval
+confint(boot_ebay, level = 0.95)
+```
+
+The graph above displays the distribution of 10000 bootstrapped differences in mean revenue ratios.
+
+## Conclusion
+
+The confidence interval computed determines with 95% confidence that the difference in the mean revenue ratio between DMAs that had paid ads on Google AdWOrds paused for a month and DMAs that continued running paid ads on Google Adwords lies between -0.09115 and -0.01396. In other terms, it appears that DMAs that paused paid Google ads saw generally lower revenue ratios than DMAs that did not pause paid Google ads. Therefore, the data provide support for the theory that Ebay's paid advertising on Google AdWords increases revenue for Ebay.  
