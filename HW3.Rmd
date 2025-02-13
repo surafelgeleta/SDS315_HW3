@@ -1,19 +1,17 @@
 ---
-title: "HW3"
+title: "Homework 3"
+author:
+  - "Surafel Geleta"
+  - "ssg2775"
+  - https://github.com/surafelgeleta/SDS315_HW3
 output:
-  pdf_document:
-    toc: true
+  pdf_document: default
   html_document: default
 ---
-
-# Surafel Geleta
-# sgg2775
-#
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 # Importing packages
 library(tidyverse)
-
 library(mosaic)
 
 # Reading datasets into variables
@@ -26,18 +24,17 @@ pilot_survey <- read.csv("C:\\Users\\gelet\\OneDrive\\Documents\\SDS315\\HW3\\nb
 ebay <- read.csv("C:\\Users\\gelet\\OneDrive\\Documents\\SDS315\\HW3\\ebay.csv")
 ```
 
-
 # Problem 1
 
 ## Theory A
 
-### Claim 
+### Claim
 
-Theory A states that "gas stations will charge more if they lack direct competition in sight". 
+Theory A states that "gas stations will charge more if they lack direct competition in sight".
 
 ### Evidence
 
-Across the 101 gas stations in the sample, gas stations with no competitors in sight had a mean gas price on April 3 2016 about `r round(mean(gas_prices$Price[gas_prices$Competitors == "N"]) - mean(gas_prices$Price[gas_prices$Competitors == "Y"]), 4)` dollars higher than gas stations with competitors in sight. 
+Across the 101 gas stations in the sample, gas stations with no competitors in sight had a mean gas price on April 3 2016 about `r round(mean(gas_prices$Price[gas_prices$Competitors == "N"]) - mean(gas_prices$Price[gas_prices$Competitors == "Y"]), 4)` dollars higher than gas stations with competitors in sight.
 
 ```{r echo=FALSE,message=FALSE,warning=FALSE,results='hide'}
 # Setting seed for reproducibility
@@ -57,7 +54,7 @@ ggplot(boot_competitors, aes(x = diffmean)) +
 confint(boot_competitors, level = 0.95)
 ```
 
-10000 bootstrapped samples were constructed from the original sample of 101 gas stations, and in each bootstrap sample the difference in mean gas station prices between gas stations without and with competitors in sight was taken. The distribution of the differences in means is displayed in the histogram above. A 95% confidence interval of the difference in means was calculated; based on this, with 95% confidence, the difference in mean prices between gas stations without and with competitors in sight is between -0.0553 and 0.00853 dollars. 
+10000 bootstrapped samples were constructed from the original sample of 101 gas stations, and in each bootstrap sample the difference in mean gas station prices between gas stations without and with competitors in sight was taken. The distribution of the differences in means is displayed in the histogram above. A 95% confidence interval of the difference in means was calculated; based on this, with 95% confidence, the difference in mean prices between gas stations without and with competitors in sight is between -0.0553 and 0.00853 dollars.
 
 ### Conclusion
 
@@ -65,9 +62,9 @@ The 95% confidence interval of difference in mean gas prices between gas station
 
 ## Theory B
 
-### Claim 
+### Claim
 
-Theory B claims that richer areas have higher gas prices. 
+Theory B claims that richer areas have higher gas prices.
 
 ### Evidence
 
@@ -87,7 +84,8 @@ ggplot(bootstrap_income, aes(x = Income)) +
 # Confidence Interval Calculation
 confint(bootstrap_income, level = 0.95)
 ```
-10000 bootstrapped samples were taken and a linear regression output was generated for each one, with income as the predictor and gas prices as the outcome variable. Above is the distribution of the bootstrapped linear regression slopes. A confidence interval was calculated from the bootstrapped samples, finding with 95% confidence that the mean change in gas prices for every one dollar increase in income lies between 0.0000006513 and 0.000001787764 dollars. 
+
+10000 bootstrapped samples were taken and a linear regression output was generated for each one, with income as the predictor and gas prices as the outcome variable. Above is the distribution of the bootstrapped linear regression slopes. A confidence interval was calculated from the bootstrapped samples, finding with 95% confidence that the mean change in gas prices for every one dollar increase in income lies between 0.0000006513 and 0.000001787764 dollars.
 
 ### Conclusion
 
@@ -118,7 +116,7 @@ ggplot(bootstrap_stoplights, aes(x = diffmean)) +
 confint(bootstrap_stoplights, level = 0.95)
 ```
 
-Bootstrap samples were generated from the original sample, and for each the difference in mean gas prices between gas stations with and without stoplights in front of them was calculated; this process was repeated 10,000 times and the output was stored in an object and the distribution of the bootstrapped diff. in means is shown in the histogram above. A confidence interval was generated from the 10000 bootstrapped diff. in means, determining with 95% confidence that the difference in mean gas prices between gas stations with and without a stoplight in front of them lies between -0.0378 and 0.0302 dollars. 
+Bootstrap samples were generated from the original sample, and for each the difference in mean gas prices between gas stations with and without stoplights in front of them was calculated; this process was repeated 10,000 times and the output was stored in an object and the distribution of the bootstrapped diff. in means is shown in the histogram above. A confidence interval was generated from the 10000 bootstrapped diff. in means, determining with 95% confidence that the difference in mean gas prices between gas stations with and without a stoplight in front of them lies between -0.0378 and 0.0302 dollars.
 
 ### Conclusion
 
@@ -148,7 +146,8 @@ ggplot(bootstrap_highway, aes(x = diffmean)) +
 # Calculating confidence interval from diff. in means
 confint(bootstrap_highway, level = 0.95)
 ```
-Bootstrap samples were taken from the original sample, and the difference in mean gas prices between gas stations with and without highway accessibility was calculated; this process was repeated 10000 times and the output is displayed in the histogram distribution above. A confidence interval was calculated on the diff. in means, finding with 95% confidence that the difference in mean gas prices between gas stations with and without highway or highway access road accessibility lies between 0.00883 and 0.08134 dollars. 
+
+Bootstrap samples were taken from the original sample, and the difference in mean gas prices between gas stations with and without highway accessibility was calculated; this process was repeated 10000 times and the output is displayed in the histogram distribution above. A confidence interval was calculated on the diff. in means, finding with 95% confidence that the difference in mean gas prices between gas stations with and without highway or highway access road accessibility lies between 0.00883 and 0.08134 dollars.
 
 ### Conclusion
 
@@ -160,13 +159,14 @@ Since the 95% confidence interval of the difference in mean gas prices betwen ga
 
 Theory E claims that Shell brand gas stations have higher gas prices than non Shell brand gas stations.
 
-### Evidence 
+### Evidence
 
 ```{r echo=FALSE,message=FALSE,warning=FALSE,results='hide'}
 # Creating a binary value where Y indicates Shell-brand, N indicates non-Shell Brand
 gas_prices <- gas_prices %>% 
   mutate(Shell = ifelse(Brand == "Shell", "Y", "N"))
 ```
+
 Sampled Shell gas stations had a mean gas price `r round(mean(gas_prices$Price[gas_prices$Shell == "Y"]) - mean(gas_prices$Price[gas_prices$Shell == "N"]), 4)` dollars higher than non Shell gas stations.
 
 ```{r echo=FALSE,message=FALSE,warning=FALSE,results='hide'}
@@ -183,6 +183,7 @@ ggplot(bootstrap_shell, aes(x = diffmean)) +
 # Creating confidence interval from diff. in means
 confint(bootstrap_shell, level = 0.95)
 ```
+
 Bootstrap samples were taken from the original sample and the difference in mean gas prices between Shell and non-Shell gas stations was calculated for each bootstrap sample, with the process repeated 10000 times and the distribution of difference in means displayed on the graph above. A confidence interval was produced, determinging with 95% confidence that the difference in mean gas prices between Shell and non-Shell gas stations lies between -0.00928 and 0.0653 dollars.
 
 ### Conclusion
@@ -221,6 +222,7 @@ boot_sclass_2014 <- do(10000)*prop(~isBlack, data = mosaic::resample(sclass_2014
 # Calculating confidence interval
 confint(boot_sclass_2014, level = 0.95)
 ```
+
 It can be stated with 95% confidence that the proportion of 2014 Mercedes S-Class 550s on cars.com at the time of data collection that were black lies between 0.4168 and 0.4534.
 
 # Problem 3
@@ -233,8 +235,7 @@ What show makes people happier: "Living with Ed" or "My Name is Earl"?
 
 ### Approach
 
-A dataset is created, only including observations on "Living with Ed" or "My Name is Earl",
-and to measure happiness, the `Q1_Happy` variable is used. The difference in mean scores in `Q1_Happy` between "Living with Ed" and "My Name is Earl" viewers is computed from a bootstrap sample constructed from the original sample, and this process is repeated 10000 times to generate 10000 bootstrapped differences in mean `Q1_Happy` scores. Then, a 95% confidence interval is constructed from the bootstrapped samples to evaluate the difference in mean `Q1_Happy` scores.
+A dataset is created, only including observations on "Living with Ed" or "My Name is Earl", and to measure happiness, the `Q1_Happy` variable is used. The difference in mean scores in `Q1_Happy` between "Living with Ed" and "My Name is Earl" viewers is computed from a bootstrap sample constructed from the original sample, and this process is repeated 10000 times to generate 10000 bootstrapped differences in mean `Q1_Happy` scores. Then, a 95% confidence interval is constructed from the bootstrapped samples to evaluate the difference in mean `Q1_Happy` scores.
 
 ### Results
 
@@ -243,7 +244,6 @@ and to measure happiness, the `Q1_Happy` variable is used. The difference in mea
 EdEarl_pilotsurvey <- pilot_survey %>% 
   filter(Show == "Living with Ed" | Show == "My Name is Earl")
 ```
-
 
 ```{r echo=FALSE,message=FALSE,warning=FALSE,results='hide'}
 # Constructing 10000 bootstrapped difference in means
@@ -259,6 +259,7 @@ ggplot(boot_EdnEarl, aes(x = diffmean)) +
 # Constructing 95% confidence interval for bootstrapped diff. in means
 confint(boot_EdnEarl, level = 0.95)
 ```
+
 The graph above displays the distribution of the bootstrapped differences in mean happiness scores.
 
 ### Conclusion
@@ -299,7 +300,8 @@ ggplot(boot_LoserAppren, aes(x = diffmean)) +
 # Constructing 95% confidence interval
 confint(boot_LoserAppren, level = 0.95)
 ```
-The graph above displays the bootstrapped difference in mean annoyance scores between "The Biggest Loser" and "The Apprentice: Los Angeles". 
+
+The graph above displays the bootstrapped difference in mean annoyance scores between "The Biggest Loser" and "The Apprentice: Los Angeles".
 
 ### Conclusion
 
@@ -340,7 +342,7 @@ confint(boot_dancing, level = 0.95)
 
 Above is the distribution of the bootstrapped proportions of viewers giving "Dancing with the Stars" a confusion score of 4 or greater. It is centered at around 0.07-0.08.
 
-### Conclusion 
+### Conclusion
 
 The confidence interval generated determines with 95% confidence that the proportion of American TV watchers expected to have given a score of 4 or above to the NBC's Q2_Confusing pilot survey question for the show "Dancing with the Stars" lies between 0.03867 and 0.12155.
 
@@ -368,7 +370,8 @@ ggplot(ebay, aes(x = factor(adwords_pause), y = rev_ratio)) +
        y = "Revenue Ratio",
        title = "Distribution of Revenue Ratios in Ebay Adwords Experiment By Group Type")
 ```
-The factored boxplot above shows the distribution of revenue ratios across DMAs in Ebay's Adwords experiment by the DMA's experimental group, with treatment groups that experienced a paid ad pause designated by 1, and control groups that had no paid ad pause indicated by 0. DMAs in the treatment group appeared to have lower revenue ratios than control DMAs, indicated that the former saw relatively lower revenue after the experiment. 
+
+The factored boxplot above shows the distribution of revenue ratios across DMAs in Ebay's Adwords experiment by the DMA's experimental group, with treatment groups that experienced a paid ad pause designated by 1, and control groups that had no paid ad pause indicated by 0. DMAs in the treatment group appeared to have lower revenue ratios than control DMAs, indicated that the former saw relatively lower revenue after the experiment.
 
 ```{r echo=FALSE,message=FALSE,warning=FALSE,results='hide'}
 # Generating bootstrap samples
@@ -389,4 +392,4 @@ The graph above displays the distribution of 10000 bootstrapped differences in m
 
 ## Conclusion
 
-The confidence interval computed determines with 95% confidence that the difference in the mean revenue ratio between DMAs that had paid ads on Google AdWords paused for a month and DMAs that continued running paid ads on Google Adwords lies between -0.09115 and -0.01396. In other terms, it appears that DMAs that paused paid Google ads saw generally lower revenue ratios than DMAs that did not pause paid Google ads, as also supported by the lower sample distribution of revenue ratios among treatment DMAs. Therefore, the data provide support for the theory that Ebay's paid advertising on Google AdWords increases revenue for Ebay. 
+The confidence interval computed determines with 95% confidence that the difference in the mean revenue ratio between DMAs that had paid ads on Google AdWords paused for a month and DMAs that continued running paid ads on Google Adwords lies between -0.09115 and -0.01396. In other terms, it appears that DMAs that paused paid Google ads saw generally lower revenue ratios than DMAs that did not pause paid Google ads, as also supported by the lower sample distribution of revenue ratios among treatment DMAs. Therefore, the data provide support for the theory that Ebay's paid advertising on Google AdWords increases revenue for Ebay.
