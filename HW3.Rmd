@@ -1,11 +1,16 @@
 ---
 title: "HW3"
 output:
-  pdf_document: default
+  pdf_document:
+    toc: true
   html_document: default
 ---
 
-```{r, echo=FALSE, warning=FALSE}
+# Surafel Geleta
+# sgg2775
+#
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
 # Importing packages
 library(tidyverse)
 
@@ -32,18 +37,10 @@ Theory A states that "gas stations will charge more if they lack direct competit
 
 ### Evidence
 
-```{r echo=FALSE,message=FALSE,warning=FALSE}
-# First, generating a simple boxplot to look at differences in the distribution of prices in the sampled gas stations
-ggplot(gas_prices, aes(x = factor(Competitors), y = Price)) +
-  geom_boxplot(fill = "lightblue1", color = "black") +
-  labs(x = "Other gas stations in sight?",
-       y = "Price of regular unleaded gas on Apr. 3 2016",
-       title = "Sampled Gas Station Price Distributions by Presence of Nearby Competitors")
-```
-Across the 101 gas stations in the sample, gas stations with no competitors in sight had their median gas price on April 3 2016 about `r median(gas_prices$Price[gas_prices$Competitors == "N"]) - median(gas_prices$Price[gas_prices$Competitors == "Y"])` dollars higher than gas stations with competitors in sight. 
+Across the 101 gas stations in the sample, gas stations with no competitors in sight had a mean gas price on April 3 2016 about `r round(mean(gas_prices$Price[gas_prices$Competitors == "N"]) - mean(gas_prices$Price[gas_prices$Competitors == "Y"]), 4)` dollars higher than gas stations with competitors in sight. 
 
-```{r echo=FALSE,message=FALSE,warning=FALSE}
-# Setting seed
+```{r echo=FALSE,message=FALSE,warning=FALSE,results='hide'}
+# Setting seed for reproducibility
 set.seed(800)
 
 # Difference in means of bootstrap samples
@@ -54,7 +51,7 @@ ggplot(boot_competitors, aes(x = diffmean)) +
   geom_histogram(fill = "plum1", color = "black") +
   labs(x = "Difference in Mean Gas Prices Between Gas Stations With and Without Competitors",
        y = "Number of Bootstrapped Samples",
-       title = "Distribution of Diff. of Bootstrap Sample Mean Gas Prices Between Gas Stations")
+       title = "Distribution of Bootstrapped Diff. of Mean Gas Prices by Competition")
 
 # Calculating 95% confidence interval of difference in bootstrapped means
 confint(boot_competitors, level = 0.95)
@@ -74,28 +71,13 @@ Theory B claims that richer areas have higher gas prices.
 
 ### Evidence
 
-First, it would be helpful to present a scatterplot demonstrating the relationship between gas prices and income within the sample of 101 gas stations.
-
-```{r echo=FALSE,message=FALSE,warning=FALSE}
-ggplot(gas_prices, aes(x = Income, y = Price)) +
-  geom_point(size = 2) +
-  # Line fitting
-  geom_smooth(method = lm, se = T)
-  labs(x = "2014 Median Household Income by Zip Code of Gas Stations",
-       y = "Price of Regular Unleaded Gas on Apr. 3 2016",
-       title = "Relationship Between Income and Gas Prices across 101 Sampled Gas Stations")
-
-# Linear Model
-summary(lm(data = gas_prices, formula = Price ~ Income))
-```
-
 There appears to be a moderate, positive relationship between income and gas prices among the 101 sampled gas stations, as indicated by a Pearson correlation of `r round(cor(gas_prices$Price, gas_prices$Income), 4)`.
 
-```{r echo=FALSE,message=FALSE,warning=FALSE}
-# Generating bootstrap samples
+```{r echo=FALSE,message=FALSE,warning=FALSE,results='hide'}
+# Generating 10000 linear models of bootstrapped gas price data
 bootstrap_income <- do(10000)*lm(data = mosaic::resample(gas_prices), formula = Price ~ Income)
 
-# Visualizing distribution of slope
+# Visualizing distribution of linear model slope
 ggplot(bootstrap_income, aes(x = Income)) +
   geom_histogram(fill = "plum1", color = "black") +
   labs(x = "Bootstrapped Mean Change in Gas Price for Every $1 Increase in Income",
@@ -119,20 +101,9 @@ Theory C states that gas stations at stoplights have higher gas prices than gas 
 
 ### Evidence
 
-```{r echo=FALSE,message=FALSE,warning=FALSE}
-# Visualizing difference in mean prices between sampled gas stations at and not at stoplights
-ggplot(gas_prices, aes(x = factor(Stoplight), y = Price)) +
-  geom_boxplot(fill = "lightblue1", color = "black") +
-  labs(x = "Stoplight In Front of Gas Station?", 
-       y = "Price of Regular Unleaded Gasoline on Apr. 3 2016",
-       title = "Differences in Gas Prices Across Sampled Gas Stations by Presence of Stoplight")
-
-round(mean(gas_prices$Price[gas_prices$Stoplight == "Y"]) - mean(gas_prices$Price[gas_prices$Stoplight == "N"]), 4)
-```
-
 Sampled gas stations with a stoplight in front of them had a mean gas price around `r round(mean(gas_prices$Price[gas_prices$Stoplight == "N"]) - mean(gas_prices$Price[gas_prices$Stoplight == "Y"]), 4)` dollars lower than gas stations without stoplights in front of them.
 
-```{r echo=FALSE,message=FALSE,warning=FALSE}
+```{r echo=FALSE,message=FALSE,warning=FALSE,results='hide'}
 # Generating bootstrapped diffs. in means and storing in object bootstrap_stoplights
 bootstrap_stoplights <- do(10000)*diffmean(Price ~ Stoplight, data = mosaic::resample(gas_prices))
 
@@ -161,19 +132,9 @@ Theory D claims that gas stations accessible from a highway have higher gas pric
 
 ### Evidence
 
-```{r echo=FALSE,message=FALSE,warning=FALSE}
-# Visualizing the difference in gas prices between gas stations accessible and not accessible from a highway
-ggplot(gas_prices, aes(x = factor(Highway), y = Price)) +
-  geom_boxplot(fill = "lightblue1", color = "black") +
-  labs(x = "Gas Station Accessible from Highway or Highway Access Road?",
-       y = "Price of Regular Unleaded Gasoline on Apr. 3 2016",
-       title = "Sampled Gas Station Gas Prices by Highway Accessibility") 
-
-round(mean(gas_prices$Price[gas_prices$Highway == "Y"]) - mean(gas_prices$Price[gas_prices$Highway == "N"]), 4)
-```
 Sampled gas stations that are accessible from a highway have gas prices `r round(mean(gas_prices$Price[gas_prices$Highway == "Y"]) - mean(gas_prices$Price[gas_prices$Highway == "N"]), 4)` dollars higher than those unaccessible from a highway.
 
-```{r echo=FALSE,message=FALSE,warning=FALSE}
+```{r echo=FALSE,message=FALSE,warning=FALSE,results='hide'}
 # Generating bootstrap diff in means between gas stations accessible and unaccessible from highway
 bootstrap_highway <- do(10000)*diffmean(Price ~ Highway, data = mosaic::resample(gas_prices))
 
@@ -201,21 +162,14 @@ Theory E claims that Shell brand gas stations have higher gas prices than non Sh
 
 ### Evidence 
 
-```{r echo=FALSE,message=FALSE,warning=FALSE}
+```{r echo=FALSE,message=FALSE,warning=FALSE,results='hide'}
 # Creating a binary value where Y indicates Shell-brand, N indicates non-Shell Brand
 gas_prices <- gas_prices %>% 
   mutate(Shell = ifelse(Brand == "Shell", "Y", "N"))
-
-# Visualizing difference in gas prices among sampled gas stations by brand
-ggplot(gas_prices, aes(x = factor(Shell), y = Price)) +
-  geom_boxplot(fill = "lightblue1", color = "black") +
-  labs(x = "Shell Gas Station?", 
-       y = "Price of Regular Unleaded Gasoline on Apr. 3 2016",
-       title = "Differences in Gas Prices Among Sampled Gas Stations By Shell Brand")
 ```
 Sampled Shell gas stations had a mean gas price `r round(mean(gas_prices$Price[gas_prices$Shell == "Y"]) - mean(gas_prices$Price[gas_prices$Shell == "N"]), 4)` dollars higher than non Shell gas stations.
 
-```{r echo=FALSE,message=FALSE,warning=FALSE}
+```{r echo=FALSE,message=FALSE,warning=FALSE,results='hide'}
 # Generating 10000 bootstrapped diff. in means 
 bootstrap_shell <- do(10000)*diffmean(Price ~ Shell, data = mosaic::resample(gas_prices))
 
@@ -239,7 +193,7 @@ Since the 95% confidence interval of difference in mean gas prices between Shell
 
 ## Part A
 
-```{r echo=FALSE,message=FALSE,warning=FALSE}
+```{r echo=FALSE,message=FALSE,warning=FALSE,results='hide'}
 # Filtering and creating new dataframe
 sclass_2011 <- s_class %>% 
   filter(year == 2011 & trim == "63 AMG")
@@ -255,7 +209,7 @@ It can be stated with 95% confidence that the mean mileage of 2011 Mercedes S-Cl
 
 ## Part B
 
-```{r echo=FALSE,message=FALSE,warning=FALSE}
+```{r echo=FALSE,message=FALSE,warning=FALSE,results='hide'}
 # Filtering, creating variable isBlack and creating new dataframe
 sclass_2014 <- s_class %>% 
   filter(year == 2014 & trim == "550") %>% 
@@ -284,22 +238,14 @@ and to measure happiness, the `Q1_Happy` variable is used. The difference in mea
 
 ### Results
 
-```{r echo=FALSE,message=FALSE,warning=FALSE}
+```{r echo=FALSE,message=FALSE,warning=FALSE,results='hide'}
 # Constructing new dataset with Ed and Earl shows
 EdEarl_pilotsurvey <- pilot_survey %>% 
   filter(Show == "Living with Ed" | Show == "My Name is Earl")
-
-# Factored boxplot to observe differences in happiness in the original sample
-ggplot(EdEarl_pilotsurvey, aes(x = factor(Show), y = Q1_Happy)) +
-  geom_boxplot(fill = "lightblue1", color = "black") +
-  labs(x = "Show",
-       y = "Happiness Score",
-       title = "NBC Pilot Survey Happiness Scores Between Ed and Earl Shows")
 ```
 
-The graph above displays differences in the distribution of happiness scores between "My Name is Earl" and "Living with Ed" in the survey sample. Both shows have a median happiness score of 4, but "Living with Ed" appears to have a wider range of score values than "My Name is Earl".
 
-```{r echo=FALSE,message=FALSE,warning=FALSE}
+```{r echo=FALSE,message=FALSE,warning=FALSE,results='hide'}
 # Constructing 10000 bootstrapped difference in means
 boot_EdnEarl <- do(10000)*diffmean(Q1_Happy ~ Show, data = mosaic::resample(EdEarl_pilotsurvey))
 
@@ -327,25 +273,19 @@ We want to answer: which shows made viewers more annoyed, "The Biggest Loser" or
 
 ### Approach
 
-A dataset is created only including the shows "The Biggest Loser" and "The Apprentince: Los Angeles", and differences in the values of `Q1_Annoyed` in the original sample are visualized using a factored boxplot. Then, 10000 bootstrapped difference in mean annoyance scores are generated from the original dataset, visualized on a histogram. Finally, a 95% confidence interval is constructed from the bootstrapped difference in mean annoyance scores to examine the strength of evidence that one show causes more annoyance than the other.
+A dataset is created only including the shows "The Biggest Loser" and "The Apprentince: Los Angeles". Then, 10000 bootstrapped difference in mean annoyance scores are generated from the original dataset, visualized on a histogram. Finally, a 95% confidence interval is constructed from the bootstrapped difference in mean annoyance scores to examine the strength of evidence that one show causes more annoyance than the other.
 
 ### Results
 
-```{r echo=FALSE,message=FALSE,warning=FALSE}
+```{r echo=FALSE,message=FALSE,warning=FALSE,results='hide'}
 # Filtering dataset to only include Loser and Apprentince and creating new dataframe
 LoserApprn_pilotsurvey <- pilot_survey %>% 
   filter(Show == "The Biggest Loser" | Show == "The Apprentice: Los Angeles")
-
-# Visualizing sample differences
-ggplot(LoserApprn_pilotsurvey, aes(x = factor(Show), y = Q1_Annoyed)) +
-  geom_boxplot(fill = "lightblue1", color = "black") +
-  labs(x = "Show",
-       y = "Annoyance Score",
-       title = "NBC Pilot Survey Annoyance Scores Between 'The Biggest Loser' and 'The Apprentice'")
 ```
-Within the NBC sample, "The Apprentince: Los Angeles" and "The Biggest Loser" appear to have identical annoyance score distributions, with median annoyance scores of 2.
 
-```{r echo=FALSE,message=FALSE,warning=FALSE}
+Within the NBC pilot survey sample, "The Apprentince: Los Angeles" received a mean annoyance score approximately `r round(mean(LoserApprn_pilotsurvey$Q1_Annoyed[LoserApprn_pilotsurvey$Show == "The Apprentice: Los Angeles"])-mean(LoserApprn_pilotsurvey$Q1_Annoyed[LoserApprn_pilotsurvey$Show == "The Biggest Loser"]), 4)` points higher than "The Biggest Loser".
+
+```{r echo=FALSE,message=FALSE,warning=FALSE,results='hide'}
 # Generating bootstrapped samples
 boot_LoserAppren <- do(10000)*diffmean(Q1_Annoyed ~ Show, data = mosaic::resample(LoserApprn_pilotsurvey))
 
@@ -354,7 +294,7 @@ ggplot(boot_LoserAppren, aes(x = diffmean)) +
   geom_histogram(fill = "plum1", color = "black") +
   labs(x = "Bootstrapped Difference in Mean Annoyance Scores",
        y = "Number of Bootstrap Samples",
-       title = "Bootstrapped Diff. in Mean Annoyance Scores Between 'Loser' and 'Apprentice' Shows")
+       title = "Bootstrapped Diff. in Mean Annoyance Scores Between Shows")
 
 # Constructing 95% confidence interval
 confint(boot_LoserAppren, level = 0.95)
@@ -363,7 +303,7 @@ The graph above displays the bootstrapped difference in mean annoyance scores be
 
 ### Conclusion
 
-The confidence interval computed demonstrates with 95% confidence that the difference in mean annoyance scores between "The Biggest Loser" and "The Apprentice: Los Angeles" lies between -0.5231 and -0.0218. Since 0 is not within this interval, the data do support the idea that viewers had different levels of annoyance between "The Biggest Loser" and "The Apprentice: Los Angeles". 
+The confidence interval computed demonstrates with 95% confidence that the difference in mean annoyance scores between "The Biggest Loser" and "The Apprentice: Los Angeles" lies between -0.5231 and -0.0218. Since 0 is not within this interval, the data do support the idea that viewers had different levels of annoyance between "The Biggest Loser" and "The Apprentice: Los Angeles". Moreover, since "The Apprentice: Los Angeles" had a higher sample mean annoyance score than "The Biggest Loser", the confidence interval also supports the theory that "The Apprentice: Los Angeles" made viewers feel more annoyed than "The Biggest Loser".
 
 ## Part C
 
@@ -377,7 +317,7 @@ A dataset is created from the original survey only containing observations with 
 
 ### Results
 
-```{r echo=FALSE,message=FALSE,warning=FALSE}
+```{r echo=FALSE,message=FALSE,warning=FALSE,results='hide'}
 dancing_pilotsurvey <- pilot_survey %>% 
   # Filtering dataset to only include Dancing with the Stars
   filter(Show == "Dancing with the Stars") %>% 
@@ -402,7 +342,7 @@ Above is the distribution of the bootstrapped proportions of viewers giving "Dan
 
 ### Conclusion 
 
-The confidence interval generated determines with 95% confidence that the proportion of American TV watchers expected to have given a score of 4 or above to the NBC's Q2_Confusing pilot survey question for the show "Dancing with the Stars" lies between 0.03887 and 0.11602.
+The confidence interval generated determines with 95% confidence that the proportion of American TV watchers expected to have given a score of 4 or above to the NBC's Q2_Confusing pilot survey question for the show "Dancing with the Stars" lies between 0.03867 and 0.12155.
 
 # Problem 4
 
@@ -416,7 +356,7 @@ To determine whether revenue changed before to after the experiment, a revenue r
 
 ## Results
 
-```{r echo=FALSE,message=FALSE,warning=FALSE}
+```{r echo=FALSE,message=FALSE,warning=FALSE,results='hide'}
 # Creating revenue ratio variable
 ebay <- ebay %>% 
   mutate(rev_ratio = rev_after/rev_before)
@@ -428,10 +368,9 @@ ggplot(ebay, aes(x = factor(adwords_pause), y = rev_ratio)) +
        y = "Revenue Ratio",
        title = "Distribution of Revenue Ratios in Ebay Adwords Experiment By Group Type")
 ```
-
 The factored boxplot above shows the distribution of revenue ratios across DMAs in Ebay's Adwords experiment by the DMA's experimental group, with treatment groups that experienced a paid ad pause designated by 1, and control groups that had no paid ad pause indicated by 0. DMAs in the treatment group appeared to have lower revenue ratios than control DMAs, indicated that the former saw relatively lower revenue after the experiment. 
 
-```{r echo=FALSE,message=FALSE,warning=FALSE}
+```{r echo=FALSE,message=FALSE,warning=FALSE,results='hide'}
 # Generating bootstrap samples
 boot_ebay <- do(10000)*diffmean(rev_ratio ~ adwords_pause, data = mosaic::resample(ebay))
 
@@ -450,4 +389,4 @@ The graph above displays the distribution of 10000 bootstrapped differences in m
 
 ## Conclusion
 
-The confidence interval computed determines with 95% confidence that the difference in the mean revenue ratio between DMAs that had paid ads on Google AdWOrds paused for a month and DMAs that continued running paid ads on Google Adwords lies between -0.09115 and -0.01396. In other terms, it appears that DMAs that paused paid Google ads saw generally lower revenue ratios than DMAs that did not pause paid Google ads. Therefore, the data provide support for the theory that Ebay's paid advertising on Google AdWords increases revenue for Ebay.  
+The confidence interval computed determines with 95% confidence that the difference in the mean revenue ratio between DMAs that had paid ads on Google AdWords paused for a month and DMAs that continued running paid ads on Google Adwords lies between -0.09115 and -0.01396. In other terms, it appears that DMAs that paused paid Google ads saw generally lower revenue ratios than DMAs that did not pause paid Google ads, as also supported by the lower sample distribution of revenue ratios among treatment DMAs. Therefore, the data provide support for the theory that Ebay's paid advertising on Google AdWords increases revenue for Ebay. 
