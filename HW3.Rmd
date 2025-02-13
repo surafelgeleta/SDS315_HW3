@@ -79,7 +79,7 @@ ggplot(bootstrap_income, aes(x = Income)) +
   geom_histogram(fill = "plum1", color = "black") +
   labs(x = "Bootstrapped Mean Change in Gas Price for Every $1 Increase in Income",
        y = "Number of Bootstrapped Samples",
-       title = "Bootstrapped Linear Regression Slope Coefficients of Income on Gas Prices")
+       title = "Bootstrapped LM Slope Coefficients of Income on Gas Prices")
 
 # Confidence Interval Calculation
 confint(bootstrap_income, level = 0.95)
@@ -110,7 +110,7 @@ ggplot(bootstrap_stoplights, aes(x = diffmean)) +
   geom_histogram(fill = "plum1", color = "black") +
   labs(x = "Bootstrapped Difference in Mean Gas Price By Presence of Stoplight",
        y = "Number of Bootstrapped Samples",
-       title = "Distribution of Bootstrapped Diff. of Mean Gas Prices Between Stoplight and Non-Stoplight Stations")
+       title = "Distribution of Bootstrapped Diff. of Mean Gas Prices By Stoplights")
 
 # Calculating a confidence interval of the diff. in means
 confint(bootstrap_stoplights, level = 0.95)
@@ -141,7 +141,7 @@ ggplot(bootstrap_highway, aes(x = diffmean)) +
   geom_histogram(fill = "plum1", color = "black") +
   labs(x = "Bootstrapped Difference in Mean Gas Price",
        y = "Number of Bootstrapped Samples",
-       title = "Distribution of Bootstrapped Diff. in Mean Gas Prices by Highway Accessibility to Gas Station")
+       title = "Distribution of Bootstrapped Diff. in Mean Gas Prices by Highway Access")
 
 # Calculating confidence interval from diff. in means
 confint(bootstrap_highway, level = 0.95)
@@ -178,7 +178,7 @@ ggplot(bootstrap_shell, aes(x = diffmean)) +
   geom_histogram(fill = "plum1", color = "black") +
   labs(x = "Bootstrapped Difference in Mean Gas Price",
        y = "Number of Bootstrap Samples", 
-       title = "Distribution of Bootstrapped Diff. in Mean Gas Prices Between Shell/Non-Shell Gas Stations")
+       title = "Distribution of Bootstrapped Diff. in Mean Gas Prices By Shell Branding")
 
 # Creating confidence interval from diff. in means
 confint(bootstrap_shell, level = 0.95)
@@ -254,7 +254,7 @@ ggplot(boot_EdnEarl, aes(x = diffmean)) +
   geom_histogram(fill = "plum1", color = "black") +
   labs(x = "Bootstrapped Difference in Mean Happiness Scores",
        y = "Number of Bootstrap Samples",
-       title = "Bootstrapped Diff. in Mean Happiness Scores Between 'Ed' and 'Earl' Shows")
+       title = "Bootstrapped Diff. in Mean Happiness Scores Between 'Ed' and 'Earl'")
 
 # Constructing 95% confidence interval for bootstrapped diff. in means
 confint(boot_EdnEarl, level = 0.95)
@@ -334,7 +334,7 @@ ggplot(boot_dancing, aes(x = prop_TRUE)) +
   geom_histogram(fill = "plum1", color = "black") +
   labs(x = "Bootstrap Proportion of Viewers Giving Confusion Score 4+",
        y = "Number of Bootstrap Samples",
-       title = "Distribution of Bootstrapped Proportions of Confusion Scores 4+ for Dancing w/the Stars")
+       title = "Distribution of Bootstrapped Proportions of Confusion Scores 4+")
 
 # Generating 95% confidence interval
 confint(boot_dancing, level = 0.95)
@@ -368,7 +368,7 @@ ggplot(ebay, aes(x = factor(adwords_pause), y = rev_ratio)) +
   geom_boxplot(fill = "lightblue1", color = "black") +
   labs(x = "DMA Group (Treatment = 1, Control = 0)",
        y = "Revenue Ratio",
-       title = "Distribution of Revenue Ratios in Ebay Adwords Experiment By Group Type")
+       title = "Distribution of Revenue Ratios in Ebay Adwords Experiment By Group")
 ```
 
 The factored boxplot above shows the distribution of revenue ratios across DMAs in Ebay's Adwords experiment by the DMA's experimental group, with treatment groups that experienced a paid ad pause designated by 1, and control groups that had no paid ad pause indicated by 0. DMAs in the treatment group appeared to have lower revenue ratios than control DMAs, indicated that the former saw relatively lower revenue after the experiment.
@@ -382,7 +382,7 @@ ggplot(boot_ebay, aes(x = diffmean)) +
   geom_histogram(fill = "plum1", color = "black") +
   labs(x = "Bootstrapped Difference in Mean Revenue Ratio",
        y = "Number of Bootstrap Samples",
-       title = "Bootstrapped Differences in Mean Revenue Ratios Between Treatment and Control")
+       title = "Bootstrapped Differences in Mean Revenue Ratios Between Groups")
 
 # Constructing 95% confidence interval
 confint(boot_ebay, level = 0.95)
